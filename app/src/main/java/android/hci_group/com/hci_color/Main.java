@@ -5,7 +5,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
-
+import android.content.Intent;
 public class Main extends Activity {
 
     ViewGroup mainView;
@@ -41,5 +41,10 @@ public class Main extends Activity {
 
         mainView.addView(reticule);
 
+    }
+
+    public void switchGalView(View view) {
+        Intent in = new Intent(this, GalleryOpen.class);
+        startActivity(in);
     }
 }
