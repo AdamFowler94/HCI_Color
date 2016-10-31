@@ -2,21 +2,29 @@ package android.hci_group.com.hci_color;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.pm.PackageManager;
-import android.net.Uri;
-import android.os.Bundle;
-import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AppCompatActivity;
-import android.view.View;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
-import android.util.Log;
 
-public class GalleryOpen extends AppCompatActivity {
+import static android.app.Activity.RESULT_OK;
+
+public class PictureTab extends Fragment implements View.OnClickListener {
+
+    private View PictureView;
 
     private static int RESULT_LOAD_IMG = 1;
     String imgDecodableString;
@@ -28,20 +36,18 @@ public class GalleryOpen extends AppCompatActivity {
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
 
-
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_gallery_open);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        final View PictureView = inflater.inflate(R.layout.activity_pic_tab,
+                container, false);
+
+        Button loadButton = (Button) PictureView.findViewById(R.id.load);
+        loadButton.setOnClickListener(this);
+
+        return PictureView;
     }
 
-    /**
-     * Checks if the app has permission to write to device storage
-     *
-     * If the app does not has permission then the user will be prompted to grant permissions
-     *
-     * @param activity
-     */
     public static void verifyStoragePermissions(Activity activity) {
         // Check if we have write permission
         int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
@@ -58,17 +64,18 @@ public class GalleryOpen extends AppCompatActivity {
 
     public void loadImagefromGallery(View view) {
 
-        verifyStoragePermissions(GalleryOpen.this);
+        verifyStoragePermissions(Main.activity);
 
         // Create intent to Open Image applications like Gallery, Google Photos
         Intent galleryIntent = new Intent(Intent.ACTION_PICK,
                 android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         // Start the Intent
         startActivityForResult(galleryIntent, RESULT_LOAD_IMG);
+
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         try {
             // When an Image is picked
@@ -80,7 +87,7 @@ public class GalleryOpen extends AppCompatActivity {
                 String[] filePathColumn = { MediaStore.Images.Media.DATA };
 
                 // Get the cursor
-                Cursor cursor = getContentResolver().query(selectedImage,
+                Cursor cursor = Main.context.getContentResolver().query(selectedImage,
                         filePathColumn, null, null, null);
 
                 // Move to first row
@@ -90,21 +97,31 @@ public class GalleryOpen extends AppCompatActivity {
                 Log.d("CHECK OUT THIS LOG",filePathColumn[0].toString());
                 imgDecodableString = cursor.getString(columnIndex);
                 cursor.close();
-                ImageView imgView = (ImageView) findViewById(R.id.imgView);
+                ImageView imageView = (ImageView) PictureView.findViewById(R.id.imageView);
 
                 // Set the Image in ImageView after decoding the String
-                imgView.setImageBitmap(BitmapFactory
+                imageView.setImageBitmap(BitmapFactory
                         .decodeFile(imgDecodableString));
 
             } else {
-                Toast.makeText(this, "You haven't picked Image",
+                Toast.makeText(Main.activity, "You haven't picked Image",
                         Toast.LENGTH_LONG).show();
             }
         } catch (Exception e) {
-            Toast.makeText(this, "Something went wrong", Toast.LENGTH_LONG)
+            Toast.makeText(Main.activity, "Something went wrong", Toast.LENGTH_LONG)
                     .show();
         }
 
     }
 
+    @Override
+    public void onClick(View v) {
+
+        switch (v.getId()) {
+            case R.id.load:
+                loadImagefromGallery(v);
+                break;
+        }
+
+    }
 }
