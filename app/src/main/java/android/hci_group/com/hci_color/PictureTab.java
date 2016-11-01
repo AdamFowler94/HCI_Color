@@ -5,7 +5,9 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -20,11 +22,14 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+
 import static android.app.Activity.RESULT_OK;
 
 public class PictureTab extends Fragment implements View.OnClickListener {
 
     private View PictureView;
+    private Bitmap bitmap;
+    private ImageView imageView;
 
     private static int RESULT_LOAD_IMG = 1;
     String imgDecodableString;
@@ -39,7 +44,7 @@ public class PictureTab extends Fragment implements View.OnClickListener {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        final View PictureView = inflater.inflate(R.layout.activity_pic_tab,
+        PictureView = inflater.inflate(R.layout.activity_pic_tab,
                 container, false);
 
         Button loadButton = (Button) PictureView.findViewById(R.id.load);
@@ -97,17 +102,37 @@ public class PictureTab extends Fragment implements View.OnClickListener {
                 Log.d("CHECK OUT THIS LOG",filePathColumn[0].toString());
                 imgDecodableString = cursor.getString(columnIndex);
                 cursor.close();
-                ImageView imageView = (ImageView) PictureView.findViewById(R.id.imageView);
+                imageView = (ImageView) PictureView.findViewById(R.id.imageView);
 
                 // Set the Image in ImageView after decoding the String
                 imageView.setImageBitmap(BitmapFactory
                         .decodeFile(imgDecodableString));
+                imageView.setDrawingCacheEnabled(true);
+                imageView.buildDrawingCache(true);
+
+                imageView.setOnTouchListener(new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(View v, MotionEvent motionEvent) {
+                        if (motionEvent.getAction() == MotionEvent.ACTION_DOWN ||
+                            motionEvent.getAction() == MotionEvent.ACTION_MOVE) {
+                            bitmap = imageView.getDrawingCache();
+                            int pixel = bitmap.getPixel((int) motionEvent.getX(), (int) motionEvent.getY());
+                            int r = Color.red(pixel);
+                            int g = Color.green(pixel);
+                            int b = Color.blue(pixel);
+
+                            Main.colorText.setText("R(" + r + ") G(" + g + ") B(" + b + ")");
+                        }
+                        return false;
+                    }
+                });
 
             } else {
                 Toast.makeText(Main.activity, "You haven't picked Image",
                         Toast.LENGTH_LONG).show();
             }
         } catch (Exception e) {
+            Log.d("CHECK OUT THIS LOG", e.getMessage());
             Toast.makeText(Main.activity, "Something went wrong", Toast.LENGTH_LONG)
                     .show();
         }

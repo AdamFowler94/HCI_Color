@@ -30,7 +30,7 @@ public class Main extends FragmentActivity implements View.OnClickListener {
     private CameraTab cameraTab;
     private PictureTab pictureTab;
 
-    private TextView colorText;
+    public static TextView colorText;
 
     private Button contextSwitch;
 
