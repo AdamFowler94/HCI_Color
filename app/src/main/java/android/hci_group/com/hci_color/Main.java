@@ -1,40 +1,60 @@
 package android.hci_group.com.hci_color;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.graphics.Matrix;
+import android.graphics.Point;
+import android.graphics.RectF;
+import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 
+import android.provider.MediaStore;
+import android.support.annotation.RequiresApi;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 
+import android.support.v4.content.ContextCompat;
+import android.util.Log;
+import android.view.Display;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 /**
  * Created by adam on 25/10/16.
  */
 
-public class Main extends FragmentActivity implements View.OnClickListener {
+public class Main extends Activity implements View.OnClickListener, View.OnTouchListener {
 
-    public static Context context;
-    public static Activity activity;
+    private static final int CAMERA_REQUEST = 1888;
+    private static final int RESULT_LOAD_IMG = 1;
 
-    public static final String CAMERA_VIEW = "Camera";
-    public static final String PICTURE_VIEW = "Picture";
+    // Storage Permissions
+    private static final int REQUEST_EXTERNAL_STORAGE = 1;
+    private static String[] PERMISSIONS_STORAGE = {
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
 
-    private Fragment view;
+    private TextView colorText;
 
-    private CameraTab cameraTab;
-    private PictureTab pictureTab;
-
-    public static TextView colorText;
-
-    private Button contextSwitch;
-
-    private String display;
+    private ImageView imageView;
+    private ImageView finderIcon;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,56 +62,139 @@ public class Main extends FragmentActivity implements View.OnClickListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        context = getApplicationContext();
-        activity = this;
-
-        cameraTab = new CameraTab();
-        cameraTab.setArguments(getIntent().getExtras());
-
-        pictureTab = new PictureTab();
-        pictureTab.setArguments(getIntent().getExtras());
+        verifyPermissions(this);
 
         // text to show the color name
         colorText = (TextView) findViewById(R.id.colorText);
 
-        // button that switched from camera to picture mode
-        contextSwitch = (Button) findViewById(R.id.contextSwitch);
-        contextSwitch.setOnClickListener(this);
+        // button to take a picture with
+        Button takePicture = (Button) findViewById(R.id.takePicture);
+        takePicture.setOnClickListener(this);
 
-        // sets the current contect to camera view when the app is opened
-        display = CAMERA_VIEW;
-        showContext();
+        // button to load a picture with
+        Button loadPicture = (Button) findViewById(R.id.loadPicture);
+        loadPicture.setOnClickListener(this);
+
+        imageView = (ImageView) findViewById(R.id.imageView);
+        imageView.setOnTouchListener(this);
+
+        finderIcon = (ImageView) findViewById(R.id.finderIcon);
 
     }
-    public void setColorText(String color) {
-        colorText.setText(color);
+
+    public void setColorText(int r, int g, int b, String hexCode) {
+        colorText.setText("R(" + r + ") G(" + g + ") B(" + b + ")\n " + hexCode);
+        colorText.setBackgroundColor(Color.rgb(r,g,b));
     }
 
-    // Switched the context to what the button is currently displaying
-    private void switchContext() {
-        display = (String) contextSwitch.getText();
-        showContext();
-    }
-    // shows the context appripriate to the current one
-    private void showContext() {
-        switch (display) {
+    public static void verifyPermissions(Activity activity) {
+        // Check if we have write permission
+        int permission = ContextCompat.checkSelfPermission(activity, Manifest.permission.CAMERA);
 
-            case CAMERA_VIEW:
-                view = new CameraTab();
-                contextSwitch.setText("Picture");
-                break;
-
-            case PICTURE_VIEW:
-                view = new PictureTab();
-                contextSwitch.setText("Camera");
-                break;
+        if (permission != PackageManager.PERMISSION_GRANTED) {
+            // We don't have permission so prompt the user
+            ActivityCompat.requestPermissions(activity,
+                    new String[]{Manifest.permission.CAMERA},
+                    CAMERA_REQUEST);
         }
 
-        FragmentManager manager = getSupportFragmentManager();
-        FragmentTransaction transaction = manager.beginTransaction();
-        transaction.replace(R.id.tabView, view);
-        transaction.commit();
+        // Check if we have write permission
+        permission = ContextCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
+        if (permission != PackageManager.PERMISSION_GRANTED) {
+            // We don't have permission so prompt the user
+            ActivityCompat.requestPermissions(
+                    activity,
+                    PERMISSIONS_STORAGE,
+                    REQUEST_EXTERNAL_STORAGE
+            );
+        }
+    }
+
+    private void takePicturewithCamera() {
+
+        Intent cameraIntent= new Intent("android.media.action.IMAGE_CAPTURE");
+        startActivityForResult(cameraIntent, CAMERA_REQUEST);
+
+    }
+
+    private void loadImagefromGallery() {
+
+        // Create intent to Open Image applications like Gallery, Google Photos
+        Intent galleryIntent = new Intent(Intent.ACTION_PICK,
+                android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        // Start the Intent
+        startActivityForResult(galleryIntent, RESULT_LOAD_IMG);
+
+    }
+
+    private void setImage(Bitmap photo) {
+
+        Display display = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        int width = size.x;
+        int height = size.y;
+
+        Toast.makeText(this,Integer.toString(size.x)+" : "+Integer.toString(size.y),
+                Toast.LENGTH_SHORT).show();
+
+        imageView.getLayoutParams().width = width;
+        imageView.getLayoutParams().height = height;
+
+        Matrix matrix = new Matrix();
+
+        matrix.postRotate(90);
+
+        Bitmap scaledBitmap = Bitmap.createScaledBitmap(photo,height,width,true);
+
+        Bitmap rotatedBitmap = Bitmap.createBitmap(scaledBitmap , 0, 0, scaledBitmap .getWidth(), scaledBitmap .getHeight(), matrix, true);
+
+        imageView.setImageBitmap(rotatedBitmap);
+
+        imageView.setDrawingCacheEnabled(true);
+        imageView.buildDrawingCache(true);
+
+        finderIcon.bringToFront();
+        colorText.bringToFront();
+
+    }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        try {
+            // When a picture is taken
+            if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
+                Bitmap photo = (Bitmap) data.getExtras().get("data");
+                setImage(photo);
+            }
+            // When an Image is picked
+            else if (requestCode == RESULT_LOAD_IMG && resultCode == RESULT_OK
+                    && null != data) {
+
+                // Get the Image from data
+                Uri selectedImage = data.getData();
+                String[] filePathColumn = { MediaStore.Images.Media.DATA };
+
+                // Get the cursor
+                Cursor cursor = this.getContentResolver().query(selectedImage,
+                        filePathColumn, null, null, null);
+
+                // Move to first row
+                cursor.moveToFirst();
+
+                int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+                Log.d("CHECK OUT THIS LOG",filePathColumn[0].toString());
+                String imgDecodableString = cursor.getString(columnIndex);
+                cursor.close();
+
+                // Set the Image in ImageView after decoding the String
+                Bitmap photo = BitmapFactory.decodeFile(imgDecodableString);
+                setImage(photo);
+            }
+        } catch (Exception e) {
+            Toast.makeText(this, "Something went wrong", Toast.LENGTH_LONG)
+                    .show();
+        }
     }
 
     // onClick listner callback function
@@ -100,13 +203,80 @@ public class Main extends FragmentActivity implements View.OnClickListener {
 
         switch (v.getId()) {
 
-            // Button the switch the context
-            case R.id.contextSwitch:
-                switchContext();
+            // Button to take a picture
+            case R.id.takePicture:
+                takePicturewithCamera();
+                break;
+
+            // Button the take a picture
+            case R.id.loadPicture:
+                loadImagefromGallery();
                 break;
 
         }
 
     }
 
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+
+        if (event.getAction() == MotionEvent.ACTION_DOWN ||
+                event.getAction() == MotionEvent.ACTION_MOVE) {
+            Bitmap bitmap = ((BitmapDrawable)imageView.getDrawable()).getBitmap();
+            int pixel = bitmap.getPixel((int) event.getX(), (int) event.getY());
+
+            int offset_w = finderIcon.getWidth() / 2;
+            int offset_h = finderIcon.getHeight() / 2;
+
+            finderIcon.setX(event.getX() - offset_w);
+            finderIcon.setY(event.getY() - offset_h);
+
+            int r = Color.red(pixel);
+            int g = Color.green(pixel);
+            int b = Color.blue(pixel);
+
+
+            // neighborhood
+            int count = 0;
+            int cur_pix;
+
+            int tot_r = 0;
+            int tot_g = 0;
+            int tot_b = 0;
+
+            Log.d("X:", String.valueOf(Math.round(event.getX())));
+            Log.d("Y:", String.valueOf(Math.round(event.getY())));
+
+            Log.d("X1", String.valueOf(Math.round(event.getX() + finderIcon.getWidth())));
+            Log.d("Y1", String.valueOf(Math.round(event.getY() + finderIcon.getHeight())));
+
+            Log.d("im w:", String.valueOf(imageView.getWidth()));
+            Log.d("im h:", String.valueOf(imageView.getHeight()));
+
+
+//                            for (int i = Math.round(motionEvent.getX()); i < motionEvent.getX() + finderIcon.getWidth(); i++ ) {
+//                                for (int j = Math.round(motionEvent.getY()); i < motionEvent.getY() + finderIcon.getHeight(); j++ ) {
+//                                    cur_pix = bitmap.getPixel(i, j);
+//                                    tot_r += Color.red(pixel);
+//                                    tot_g += Color.green(pixel);
+//                                    tot_b += Color.blue(pixel);
+//                                    count++;
+//                                }
+//                            }
+//
+//                            int r = tot_r / count;
+//                            int g = tot_g / count;
+//                            int b = tot_b / count;
+
+
+            String hexCode = String.format("#%02x%02x%02x", r, g, b);
+
+            // Kelvins code
+            // hexCode -> english
+
+            setColorText(r,g,b, hexCode);
+
+        }
+        return false;
+    }
 }
