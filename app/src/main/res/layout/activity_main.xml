@@ -9,32 +9,26 @@
         android:id="@+id/colorText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Place Holder"
+        android:text=""
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true" />
 
     <ImageView
         android:background="@color/black"
         android:id="@+id/imageView"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:layout_centerInParent="true"
         android:rotation="0"
         android:scaleType="center"/>
 
     <Button
-        android:id="@+id/takePicture"
-        android:text="Take Picture"
+        android:id="@+id/menu"
+        android:background="@drawable/layout_buttons"
+        android:text="menu"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"/>
-
-    <Button
-        android:id="@+id/loadPicture"
-        android:text="Load Picture"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"/>
 
     <!--
     <ImageView
@@ -48,8 +42,8 @@
     <ImageView
         android:background="@drawable/layout_finder"
         android:id="@+id/finderIcon"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
+        android:layout_width="30px"
+        android:layout_height="30px"
         android:layout_centerInParent="true" />
 
 </RelativeLayout>
