@@ -3,4 +3,10 @@
     <string name="title_activity_gallery_open">GalleryOpen</string>
     <string name="GalButton">Choose Image</string>
     <string name="title_activity_im_view">ImView</string>
+    <string name="spin_title">Sample Size</string>
+    <string-array name="sizes">
+        <item>Small</item>
+        <item>Medium</item>
+        <item>Large</item>
+    </string-array>
 </resources>
