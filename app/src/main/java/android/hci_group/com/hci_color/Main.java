@@ -80,8 +80,9 @@ public class Main extends Activity implements View.OnClickListener, View.OnTouch
             @Override
             public boolean onScale(ScaleGestureDetector detector) {
                 scaleFactor *= detector.getScaleFactor();
-                finderIcon.setScaleX(scaleFactor);
-                finderIcon.setScaleY(scaleFactor);
+                finderIcon.getLayoutParams().width = (int) (10 * scaleFactor);
+                finderIcon.getLayoutParams().height = (int) (10 * scaleFactor);
+                finderIcon.requestLayout();
                 return true;
             }
         });
@@ -190,21 +191,21 @@ public class Main extends Activity implements View.OnClickListener, View.OnTouch
         // X
         float x = event.getX() - offset_w;
 
-        if (x > width - offset_w) {
-            x = width - offset_w;
+        if (x > width - offset_w * 2) {
+            x = width - offset_w * 2;
         }
-        else if (x < offset_w) {
-            x = offset_w;
+        else if (x < 0) {
+            x = 0;
         }
 
         // Y
         float y = event.getY() - offset_h;
 
-        if (y > height - offset_h) {
-            y = height - offset_h;
+        if (y > height - offset_h * 2) {
+            y = height - offset_h * 2;
         }
-        else if (y < offset_h) {
-            y = offset_h;
+        else if (y < 0) {
+            y = 0;
         }
 
         Main.finderIcon.setX(x);
