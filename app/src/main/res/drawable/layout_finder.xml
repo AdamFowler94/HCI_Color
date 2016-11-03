@@ -7,10 +7,10 @@
 
             <stroke
                 android:color="@color/finder"
-                android:width="1px" />
+                android:width="4px" />
 
             <corners
-                android:radius="2px" />
+                android:radius="5px" />
 
         </shape>
 

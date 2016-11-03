@@ -1,10 +1,13 @@
 package android.hci_group.com.hci_color;
 
 import android.app.Activity;
-import android.app.usage.UsageEvents;
+
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 
+import android.net.Uri;
 import android.os.Bundle;
 
 import android.view.MenuItem;
@@ -16,6 +19,8 @@ import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.io.IOException;
 
 /**
  * Created by adam on 25/10/16.
@@ -34,12 +39,14 @@ public class Main extends Activity implements View.OnClickListener, View.OnTouch
 
     public static ImageStuff imageStuff;
     private OnTouch pressed;
+    private MoveStuff moveStuff;
 
     private ScaleGestureDetector mScaleDetector;
 
     private Button menuButton;
     private boolean inScale;
-    private boolean hasImage;
+    private int hasImage;
+    private Uri photoUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,8 +55,6 @@ public class Main extends Activity implements View.OnClickListener, View.OnTouch
         setContentView(R.layout.activity_main);
 
         new Permissions(this);
-        pressed = new OnTouch(this);
-        imageStuff = new ImageStuff(this);
 
         // text to show the color name
         colorText = (TextView) findViewById(R.id.colorText);
@@ -62,7 +67,7 @@ public class Main extends Activity implements View.OnClickListener, View.OnTouch
         scaleFactor = 1;
         inScale = false;
 
-        hasImage = false;
+        hasImage = 0;
 
         menuButton = (Button) findViewById(R.id.menu);
         menuButton.setOnClickListener(this);
@@ -80,32 +85,43 @@ public class Main extends Activity implements View.OnClickListener, View.OnTouch
             @Override
             public boolean onScale(ScaleGestureDetector detector) {
                 scaleFactor *= detector.getScaleFactor();
-                finderIcon.getLayoutParams().width = (int) (10 * scaleFactor);
-                finderIcon.getLayoutParams().height = (int) (10 * scaleFactor);
+                if (scaleFactor > 20) {
+                    scaleFactor = 20;
+                }
+                finderIcon.getLayoutParams().width = 20 + (int) (10 * scaleFactor);
+                finderIcon.getLayoutParams().height = 20 + (int) (10 * scaleFactor);
                 finderIcon.requestLayout();
                 return true;
             }
         });
+
+        pressed = new OnTouch(this);
+        imageStuff = new ImageStuff(this);
+        moveStuff = new MoveStuff();
 
     }
 
     public static void setColorText(int r, int g, int b, String hexCode) {
         colorText.setText("R(" + r + ") G(" + g + ") B(" + b + ")\n " + hexCode);
         colorText.setBackgroundColor(Color.rgb(r,g,b));
+        //colorText.setTextColor(Color.rgb());
+        colorText.bringToFront();
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         try {
             // When a picture is taken
             if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
-                imageStuff.setImage(data.getData());
-                hasImage = true;
+                photoUri = data.getData();
+                imageStuff.setImage(photoUri);
+                hasImage = 1;
             }
             // When an Image is picked
             else if (requestCode == RESULT_LOAD_IMG && resultCode == RESULT_OK
                     && null != data) {
-                imageStuff.setImage(data.getData());
-                hasImage = true;
+                photoUri = data.getData();
+                imageStuff.setImage(photoUri);
+                hasImage = 1;
             }
         } catch (Exception e) {
             Toast.makeText(this, "Something went wrong", Toast.LENGTH_LONG)
@@ -132,10 +148,11 @@ public class Main extends Activity implements View.OnClickListener, View.OnTouch
                         imageStuff.loadImagefromGallery();
                         break;
 
+                    /*
                     case R.id.options:
                         // open the options
                         break;
-
+                    */
                 }
                 return true;
             }
@@ -168,49 +185,13 @@ public class Main extends Activity implements View.OnClickListener, View.OnTouch
         if ((event.getAction() == MotionEvent.ACTION_DOWN ||
                 event.getAction() == MotionEvent.ACTION_MOVE) && (!inScale)) {
 
-            moveSquare(event);
+            moveStuff.move(event);
 
-            if (hasImage) {
+            if (hasImage == 1) {
                 pressed.press(event);
             }
 
         }
         return true;
-    }
-
-    private void moveSquare(MotionEvent event) {
-
-
-        int offset_w = finderIcon.getWidth() / 2;
-        int offset_h = finderIcon.getHeight() / 2;
-
-        // size of image view
-        int width = imageView.getWidth();
-        int height = imageView.getHeight();
-
-        // X
-        float x = event.getX() - offset_w;
-
-        if (x > width - offset_w * 2) {
-            x = width - offset_w * 2;
-        }
-        else if (x < 0) {
-            x = 0;
-        }
-
-        // Y
-        float y = event.getY() - offset_h;
-
-        if (y > height - offset_h * 2) {
-            y = height - offset_h * 2;
-        }
-        else if (y < 0) {
-            y = 0;
-        }
-
-        Main.finderIcon.setX(x);
-        Main.finderIcon.setY(y);
-
-
     }
 }
