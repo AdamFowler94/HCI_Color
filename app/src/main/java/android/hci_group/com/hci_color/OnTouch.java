@@ -41,12 +41,12 @@ public class OnTouch{
 
         // neighbourhood
         String hexCode1 = getNeighborColorHex(event, bitmap, Main.finderIcon);
-
-
+        ColorCompare c = new ColorCompare(hexCode1);
+        String color_word = c.getCloseColor();
         // Kelvins code
         // hexCode -> english
 
-        Main.setColorText(r,g,b, hexCode1);
+        Main.setColorText(r,g,b, color_word);
     }
 
     // helper function to get neighborhood of pixels
