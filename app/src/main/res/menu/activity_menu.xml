@@ -9,9 +9,9 @@
         android:id="@+id/loadPicture"
         android:title="Load Picture" />
 
-    <item
+    <!--<item
         android:id="@+id/options"
         android:title="Options">
-    </item>
+    </item>-->
 
 </menu>

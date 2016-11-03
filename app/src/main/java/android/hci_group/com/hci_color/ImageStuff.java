@@ -83,9 +83,6 @@ public class ImageStuff {
         Main.imageView.setDrawingCacheEnabled(true);
         Main.imageView.buildDrawingCache(true);
 
-        Main.finderIcon.bringToFront();
-        Main.colorText.bringToFront();
-
     }
 
 }

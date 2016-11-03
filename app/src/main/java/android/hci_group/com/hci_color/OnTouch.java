@@ -45,6 +45,7 @@ public class OnTouch{
 
         // Kelvins code
         // hexCode -> english
+
         Main.setColorText(r,g,b, hexCode1);
     }
 
