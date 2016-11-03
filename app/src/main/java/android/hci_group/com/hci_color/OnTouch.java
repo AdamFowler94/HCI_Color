@@ -24,12 +24,6 @@ public class OnTouch{
         Bitmap bitmap = ((BitmapDrawable)Main.imageView.getDrawable()).getBitmap();
         int pixel = bitmap.getPixel((int) event.getX(), (int) event.getY());
 
-        int offset_w = Main.finderIcon.getWidth() / 2;
-        int offset_h = Main.finderIcon.getHeight() / 2;
-
-        Main.finderIcon.setX(event.getX() - offset_w);
-        Main.finderIcon.setY(event.getY() - offset_h);
-
         int r = Color.red(pixel);
         int g = Color.green(pixel);
         int b = Color.blue(pixel);
