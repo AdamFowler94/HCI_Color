@@ -85,4 +85,32 @@ public class ImageStuff {
 
     }
 
+    public void startImage() {
+
+
+        Bitmap bitmap = BitmapFactory.decodeResource(Main.context.getResources(),R.drawable.background);
+
+        Display display = current.getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        int width = size.x;
+        int height = size.y;
+
+        Main.imageView.getLayoutParams().width = width;
+        Main.imageView.getLayoutParams().height = height;
+
+        Matrix matrix = new Matrix();
+
+        Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap,width,height,true);
+
+        Bitmap rotatedBitmap = Bitmap.createBitmap(scaledBitmap , 0, 0, scaledBitmap.getWidth(),
+                scaledBitmap.getHeight(), matrix, true);
+
+        Main.imageView.setImageBitmap(rotatedBitmap);
+
+        Main.imageView.setDrawingCacheEnabled(true);
+        Main.imageView.buildDrawingCache(true);
+
+    }
+
 }

@@ -4,7 +4,6 @@ import android.app.Activity;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Color;
 
 import android.net.Uri;
@@ -48,11 +47,15 @@ public class Main extends Activity implements View.OnClickListener, View.OnTouch
     private int hasImage;
     private Uri photoUri;
 
+    public static Context context;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        context = getApplicationContext();
 
         new Permissions(this);
 
@@ -98,6 +101,10 @@ public class Main extends Activity implements View.OnClickListener, View.OnTouch
         pressed = new OnTouch(this);
         imageStuff = new ImageStuff(this);
         moveStuff = new MoveStuff();
+
+        imageStuff.startImage();
+        hasImage = 1;
+
 
     }
 
